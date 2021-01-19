@@ -10492,3 +10492,18 @@ section#contact form#contactForm :-ms-input-placeholder {
   -o-background-size: cover;
   background-size: cover;
 }
+
+
+
+.bg-green {
+  background-color: #1ed761 !important;
+  color: #fff !important;
+  padding: 1.5rem 0rem;
+}
+.bg-green a {
+  color: #fff !important;
+  text-decoration: underline;
+}
+.bg-green div  {
+  margin-top: .5rem;
+}
