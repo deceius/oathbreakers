@@ -10006,7 +10006,7 @@ p {
     padding: 9rem 0;
   }
 }
-::-moz-selection {
+/* ::-moz-selection {
   background: #dc3545;
   text-shadow: none;
 }
@@ -10026,7 +10026,7 @@ img::selection {
 
 img::-moz-selection {
   background: transparent;
-}
+} */
 
 .btn-xl {
   padding: 1.25rem 2.5rem;
