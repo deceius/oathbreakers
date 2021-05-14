@@ -10494,6 +10494,16 @@ section#contact form#contactForm :-ms-input-placeholder {
 }
 
 
+.carousel-item-half {
+  height: 50vh;
+  min-height: 350px;
+  background: no-repeat center center scroll;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
 
 .bg-green {
   background-color: #1ed761 !important;
