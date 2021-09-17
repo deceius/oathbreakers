@@ -53,15 +53,33 @@
         <section class="page-section" id="about">
             <div class="container">
                 <div class="text-center">
-                    <h2 class="section-heading text-uppercase">OB Lootlog Viewer 1.1</h2>
-                    <h3 class="section-subheading text-muted">Just upload the AOLootlog .csv file.</h3>
+                    <h2 class="section-heading text-uppercase">OB Lootlog Viewer 1.5</h2>
+                    <h3 class="section-subheading text-muted">Just upload the AOLootlog .csv file. Export Guild Members list to get your looters... or not.</h3>
    
                 </div>
                 <div class="row">
-                    <div class="col-lg-12 text-center">
+                    <div class="col-lg-6">
                         
                         <textarea style="display:none;" name="input" id="input" cols="30" rows="10"></textarea>
-                        <input type="file" id="files" name="files[]" />
+                        <textarea style="display:none;" name="input_guild" id="input_guild" cols="30" rows="10"></textarea>
+
+                        <div class="form-group">
+                            <label>AOLootlog CSV</label>
+                            <div class="custom-file form-control">
+                                <input type="file" id="files" class="custom-file-input" name="files[]" />
+                                <label class="custom-file-label">Choose File...</label>
+                              </div>
+                          </div>
+                                
+                    </div>
+                    <div class="col-lg-6">
+                          <div class="form-group">
+                            <label>Guild Members List (Optional)</label>
+                            <div class="custom-file form-control">
+                                <input type="file" id="files_guild" class="custom-file-input" name="files_guild[]" />
+                                <label class="custom-file-label" >Choose File...</label>
+                              </div>
+                          </div>
                                   
                     </div>
                     <div class="col-lg-12 text-center" style="margin-top: 40px;">
@@ -103,7 +121,18 @@
             $(document).ready(function() {
                 if(isFileAPIAvailable()) {
                 $('#files').bind('change', handleDialog);
+                $('#files_guild').bind('change', handleDialogGuild);
                 }
+            });
+
+            $(".custom-file-input").on("change", function() {
+                var fileName = $(this).val().split("\\").pop();
+                $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+            });
+
+            $(".custom-file-input-2").on("change", function() {
+                var fileName = $(this).val().split("\\").pop();
+                $(this).siblings(".custom-file-label-2").addClass("selected").html(fileName);
             });
 
             // enable syntax highlighting
@@ -141,6 +170,19 @@
                 }
             }
 
+            function handleDialogGuild(event) {
+                var files = event.target.files;
+                var file = files[0];
+                var reader = new FileReader();
+                reader.readAsText(file);
+                reader.onload = function(event){
+                    var csv = event.target.result;
+                    $("#container").empty();
+                    $('#input_guild').empty();
+                    $('#input_guild').html(csv);
+                }
+            }
+
             function insert_column(columns){
                     var html = "<tr>";
                     html += "<td>" + columns[0] + "</td>";
@@ -152,9 +194,32 @@
 
                     return html;
             }
+
+
+            function is_member(members, name){
+                var result = false;
+                if ( members == null) {
+                    return true;
+                }
+                else {
+                   members.forEach(function getvalues(member){
+                    if (member.includes(name)) {
+                        result = true;
+                        return;
+                    }
+                   }) 
+                }
+
+                return result;
+            }
             function parse(rows, exclude_trash, exclude_capes_mounts) {
                 $("#container").empty();
-                console.log(rows);
+                var members = null;
+                if (document.getElementById("input_guild").value != ''){
+                    console.log($('#input_guild').val());
+                    members =  $.csv.toArrays($('#input_guild').val());
+                }
+                console.log(members);
                  // start the table
                 var html = '<table id=\"test\"  class=\"table table-striped table-bordered\"">';
                     html +=     "<thead>";
@@ -172,26 +237,29 @@
                 rows.forEach( function getvalues(ourrow) {
                     
                 var columns =JSON.stringify(ourrow[0]).replace(/\"/g, "").split(";");
-                if(exclude_capes_mounts && !exclude_trash){
-                    if (!columns[2].includes("_CAPE") && !columns[2].includes("_MOUNT")){
+                if (is_member(members, columns[1])){
+                    if(exclude_capes_mounts && !exclude_trash){
+                        if (!columns[2].includes("_CAPE") && !columns[2].includes("_MOUNT")){
+                            html += insert_column(columns)
+                        }
+                    }
+                    else if (exclude_trash && !exclude_capes_mounts) {
+                        if (!columns[2].includes("_TRASH")){
+                            html += insert_column(columns)
+                        }  
+                    }
+                    
+                    else if (exclude_trash && exclude_capes_mounts) {
+                        if (!columns[2].includes("UNIQUE_GVGTOKEN_GENERIC") &&!columns[2].includes("_TRASH") && !columns[2].includes("_MEAL") && !columns[2].includes("_POTION") &&  !columns[2].includes("_CAPE") && !columns[2].includes("_MOUNT")){
+                            html += insert_column(columns)
+                        }  
+                    }
+                    else {
                         html += insert_column(columns)
                     }
                 }
-                else if (exclude_trash && !exclude_capes_mounts) {
-                    if (!columns[2].includes("_TRASH")){
-                        html += insert_column(columns)
-                    }  
-                }
-                
-                else if (exclude_trash && exclude_capes_mounts) {
-                    if (!columns[2].includes("UNIQUE_GVGTOKEN_GENERIC") &&!columns[2].includes("_TRASH") && !columns[2].includes("_MEAL") && !columns[2].includes("_POTION") &&  !columns[2].includes("_CAPE") && !columns[2].includes("_MOUNT")){
-                        html += insert_column(columns)
-                    }  
-                }
-                else {
-                    html += insert_column(columns)
-                }
                 })
+                
                 
                 html +=     "</tbody>";
                 // close table
