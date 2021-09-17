@@ -198,7 +198,7 @@
                     html += "<td><img src=\"https://render.albiononline.com/v1/item/" + columns[2] + ".png\" width=\"48\" height=\"48\"></td>";
                     html += "<td>" + columns[3] + "</td>";
                     html += "<td>" + columns[4] + "</td>";
-                    html += "<td>" + is_looted(columns[1], columns[2], rows) + "</td>";
+                    html += is_looted(columns[1], columns[2], rows);
                     html += "</tr>";
 
                     return html;
@@ -206,19 +206,21 @@
 
 
             function is_looted(looted, i, list){
-                var result = "LOOTED";
+                var result = "✔️";
+                var title = "LOOTED";
                 var checkBox = document.getElementById("check_status");
                 if (checkBox.checked == true){
                     list.forEach(function getvalues(ourrow){
                     var item = JSON.stringify(ourrow[0]).replace(/\"/g, "").split(";");
                     if (item[4].includes(looted) && item[2].includes(i)) {
-                        result = "LOST TO " + item[1];
+                        result = "❌";
+                        title = "LOOTED BY " + item[1];
                         return;
                     }
                 }) 
                 }
                 
-                return result;
+                return "<td title = \"" + title +"\">" + result + "</td>";
 
             }
             function is_member(members, name){
