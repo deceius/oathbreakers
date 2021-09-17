@@ -54,15 +54,16 @@
             <div class="container">
                 <div class="text-center">
                     <h2 class="section-heading text-uppercase">OB Lootlog Viewer</h2>
-                    <h3 class="section-subheading text-muted">Paste the raw .csv file contents in the text box. Please don't be a noob and edit anything pasted in that box. We do it so we won't be payin' anything. Alright?</h3>
+                    <h3 class="section-subheading text-muted">Paste the raw .csv file contents in the text box.</h3>
    
                 </div>
                 <div class="row">
                     <div class="col-lg-12">
                         <textarea id="input" style="height: 96px; width:100%;"></textarea>
                         
-                        <input id="run" type="button" class="btn btn-danger" value="Read it!" />
-
+                        <input id="run" type="button" class="btn btn-danger" value="Read All" />
+                        <input id="run1" type="button" class="btn btn-success" value="Read (Exclude Trash)" />
+                        <input id="run2" type="button" class="btn btn-info" value="Read Regearables" />
                         <div style="margin-top:40px;" id="container"></div>  
                     </div>
                     
@@ -93,10 +94,29 @@
       
       
             $('#run').bind('click', function () {
-              parse();
+              parse(false, false);
+            });
+
+            $('#run1').bind('click', function () {
+              parse(true, false);
+            });
+
+            $('#run2').bind('click', function () {
+              parse(true, true);
             });
       
-            function parse() {
+            function insert_column(columns){
+                    var html = "<tr>";
+                    html += "<td>" + columns[0] + "</td>";
+                    html += "<td>" + columns[1] + "</td>";
+                    html += "<td><img src=\"https://render.albiononline.com/v1/item/" + columns[2] + ".png\" width=\"48\" height=\"48\"></td>";
+                    html += "<td>" + columns[3] + "</td>";
+                    html += "<td>" + columns[4] + "</td>";
+                    html += "</tr>";
+
+                    return html;
+            }
+            function parse(exclude_trash, exclude_capes_mounts) {
                 $("#container").empty();
                 const input = $('#input').val();
                 var rows =  $.csv.toArrays(input);
@@ -116,18 +136,27 @@
                 
                 html +=     "<tbody>";
                 rows.forEach( function getvalues(ourrow) {
-                console.log(ourrow)
-                // start a table row
-                html += "<tr>";
-                // split line into columns
+                    
                 var columns =JSON.stringify(ourrow[0]).replace(/\"/g, "").split(";");
-                html += "<td>" + columns[0] + "</td>";
-                html += "<td>" + columns[1] + "</td>";
-                html += "<td><img src=\"https://render.albiononline.com/v1/item/" + columns[2] + ".png\" width=\"48\" height=\"48\"></td>";
-                html += "<td>" + columns[3] + "</td>";
-                html += "<td>" + columns[4] + "</td>";
-                // close row
-                html += "</tr>";
+                if(exclude_capes_mounts && !exclude_trash){
+                    if (!columns[2].includes("_CAPE") && !columns[2].includes("_MOUNT")){
+                        html += insert_column(columns)
+                    }
+                }
+                else if (exclude_trash && !exclude_capes_mounts) {
+                    if (!columns[2].includes("_TRASH")){
+                        html += insert_column(columns)
+                    }  
+                }
+                
+                else if (exclude_trash && exclude_capes_mounts) {
+                    if (!columns[2].includes("UNIQUE_GVGTOKEN_GENERIC") &&!columns[2].includes("_TRASH") && !columns[2].includes("_MEAL") && !columns[2].includes("_POTION") &&  !columns[2].includes("_CAPE") && !columns[2].includes("_MOUNT")){
+                        html += insert_column(columns)
+                    }  
+                }
+                else {
+                    html += insert_column(columns)
+                }
                 })
                 
                 html +=     "</tbody>";
