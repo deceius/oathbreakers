@@ -53,8 +53,8 @@
         <section class="page-section" id="about">
             <div class="container">
                 <div class="text-center">
-                    <h2 class="section-heading text-uppercase">OB Lootlog Viewer 1.5</h2>
-                    <h3 class="section-subheading text-muted">Just upload the AOLootlog .csv file. Export Guild Members list to get your looters... or not.</h3>
+                    <h2 class="section-heading text-uppercase">OB Lootlog Viewer 1.6</h2>
+                    <h3 class="section-subheading text-muted">Just upload the AOLootlog .csv file. Export Guild Members list to get your looters... or not. <br>Also now checks if you lost that loot to somebody in that battlefield!</h3>
    
                 </div>
                 <div class="row">
@@ -70,7 +70,12 @@
                                 <label class="custom-file-label">Choose File...</label>
                               </div>
                           </div>
-                                
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="check_status">
+                            <label class="form-check-label" for="check_status">
+                              Enable Lost Loot Finder (takes more time to process)
+                            </label>
+                          </div>  
                     </div>
                     <div class="col-lg-6">
                           <div class="form-group">
@@ -82,6 +87,9 @@
                           </div>
                                   
                     </div>
+                    
+                                
+                  </div>
                     <div class="col-lg-12 text-center" style="margin-top: 40px;">
                         <input id="run" type="button" class="btn btn-danger" value="Read All" />
                         <input id="run1" type="button" class="btn btn-success" value="Read (Exclude Trash)" />
@@ -183,19 +191,36 @@
                 }
             }
 
-            function insert_column(columns){
+            function insert_column(columns, rows){
                     var html = "<tr>";
                     html += "<td>" + columns[0] + "</td>";
                     html += "<td>" + columns[1] + "</td>";
                     html += "<td><img src=\"https://render.albiononline.com/v1/item/" + columns[2] + ".png\" width=\"48\" height=\"48\"></td>";
                     html += "<td>" + columns[3] + "</td>";
                     html += "<td>" + columns[4] + "</td>";
+                    html += "<td>" + is_looted(columns[1], columns[2], rows) + "</td>";
                     html += "</tr>";
 
                     return html;
             }
 
 
+            function is_looted(looted, i, list){
+                var result = "LOOTED";
+                var checkBox = document.getElementById("check_status");
+                if (checkBox.checked == true){
+                    list.forEach(function getvalues(ourrow){
+                    var item = JSON.stringify(ourrow[0]).replace(/\"/g, "").split(";");
+                    if (item[4].includes(looted) && item[2].includes(i)) {
+                        result = "LOST TO " + item[1];
+                        return;
+                    }
+                }) 
+                }
+                
+                return result;
+
+            }
             function is_member(members, name){
                 var result = false;
                 if ( members == null) {
@@ -219,7 +244,6 @@
                     console.log($('#input_guild').val());
                     members =  $.csv.toArrays($('#input_guild').val());
                 }
-                console.log(members);
                  // start the table
                 var html = '<table id=\"test\"  class=\"table table-striped table-bordered\"">';
                     html +=     "<thead>";
@@ -229,6 +253,7 @@
                             html += "<th>Item</th>"
                             html += "<th>Quantity</th>";
                             html += "<th>Victim</th>";
+                            html += "<th>Status</th>";
                             html += "</tr>";
                             html += "</thead>";
                 // parse lines
@@ -236,26 +261,26 @@
                 html +=     "<tbody>";
                 rows.forEach( function getvalues(ourrow) {
                     
-                var columns =JSON.stringify(ourrow[0]).replace(/\"/g, "").split(";");
+                var columns = JSON.stringify(ourrow[0]).replace(/\"/g, "").split(";");
                 if (is_member(members, columns[1])){
                     if(exclude_capes_mounts && !exclude_trash){
                         if (!columns[2].includes("_CAPE") && !columns[2].includes("_MOUNT")){
-                            html += insert_column(columns)
+                            html += insert_column(columns, rows)
                         }
                     }
                     else if (exclude_trash && !exclude_capes_mounts) {
                         if (!columns[2].includes("_TRASH")){
-                            html += insert_column(columns)
+                            html += insert_column(columns, rows)
                         }  
                     }
                     
                     else if (exclude_trash && exclude_capes_mounts) {
                         if (!columns[2].includes("UNIQUE_GVGTOKEN_GENERIC") &&!columns[2].includes("_TRASH") && !columns[2].includes("_MEAL") && !columns[2].includes("_POTION") &&  !columns[2].includes("_CAPE") && !columns[2].includes("_MOUNT")){
-                            html += insert_column(columns)
+                            html += insert_column(columns, rows)
                         }  
                     }
                     else {
-                        html += insert_column(columns)
+                        html += insert_column(columns, rows)
                     }
                 }
                 })
