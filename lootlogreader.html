@@ -214,7 +214,7 @@
                     var item = JSON.stringify(ourrow[0]).replace(/\"/g, "").split(";");
                     if (item[4].includes(looted) && item[2].includes(i)) {
                         result = "❌";
-                        title = "LOOTED BY " + item[1];
+                        title = "LOST TO " + item[1];
                         return;
                     }
                 }) 
